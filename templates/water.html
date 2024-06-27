@@ -1,0 +1,518 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>水下系统</title>
+    <link rel="stylesheet" href="{% static 'css/water.css' %}">
+</head>
+
+
+<body>
+    <button id="back">返回</button>
+    <style>
+        #back {
+            font-family: Arial, sans-serif;
+            font-size: 24px;
+            font-weight: bold;
+            color: black;
+        }
+    </style>
+
+<script>
+    var back=document.getElementById('back')
+    back.onclick = () =>{
+        history.back();
+    }
+</script>
+
+
+<div class="content-body">
+    <div class="header">
+        <div class="header-left">
+            <span>海洋牧场大数据可视化系统：水下系统</span>
+        </div>
+
+        <div class="header-time">
+            <span id="time"></span>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="content-con">
+            <div class="left-body">
+
+                <div class="left-top public-bg">
+                    <div class="public-title">鱼群数量</div>
+
+                    <div class="top-body">
+
+                        <div class="top-left">
+                            <div class="top-left-title">
+                                <h6>数据总量</h6>
+                                <span><b>{{ total_latest_fish }}</b></span>
+                            </div>
+                        </div>
+
+                        <div class="top-center">
+                            <div class="top-left-title">
+                                <h6>今日新增</h6>
+                                <span><b>8</b></span>
+                            </div>
+                        </div>
+
+                        <div class="top-right">
+                            <div class="top-left-title">
+                                <h6>今日处理</h6>
+                                <span><b>8</b></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="left-con public-bg">
+                    <div class="public-title">环境得分</div>
+                    <span class="custom-color-2">时间：{{latest_hydrologic_info.monitoring_time|date:"Y年m月d日"}}<br></span>
+                    <span class="custom-color-2">环境得分：{{latest_environment_score}}<br></span>
+                    <div id="gauge-chart" style="width: 100%; height: 250px;"></div>
+                </div>
+
+                <div class="left-bottom public-bg">
+                    <div class="public-title">鱼群变化</div>
+                    <div id="line-chart" style="width: 100%; height: 100%;"></div>
+                </div>
+            </div>
+
+            <div class="center-body">
+
+                <div class="center-top public-bg">
+                    <div class="public-title">总信息展示</div>
+
+                    <div class="center-table">
+                        <div class="table-left">
+                            <div class="table-left-title">
+                                <h6>鱼群种类</h6>
+                                <span><b>{{total_fish_species}}</b></span>
+                            </div>
+                        </div>
+
+                        <div class="table-center">
+                            <div class="table-left-title">
+                                <h6>设备种类</h6>
+                                <span><b>{{total_categories}}</b></span>
+                            </div>
+                        </div>
+
+                        <div class="table-right">
+                            <div class="table-left-title">
+                                <h6>设备总数</h6>
+                                <span><b>{{total_devices}}</b></span>
+                            </div>
+                        </div>
+
+                        <div id="fishGroupChart" style="width: 50%; height: 200px;"></div>
+                    </div>
+                </div>
+
+                <div class="center-bottom public-bg">
+                    <div class="public-title">统计展示</div>
+                    <div id="main" style="width: 100%;height:100%;"></div>
+                </div>
+            </div>
+
+            <div class="right-body">
+
+                <div class="right-top public-bg">
+                    <div class="public-title">网箱信息</div>
+                    <span class="custom-color-2">长度：{{netcage_data.length}}<br></span>
+                    <span class="custom-color-2">宽度：{{netcage_data.width}}<br></span>
+                    <span class="custom-color-2">深度：{{netcage_data.depth}}<br></span>
+                    <span class="custom-color-2">经度：{{netcage_data.longitude}}<br></span>
+                    <span class="custom-color-2">纬度：{{netcage_data.latitude}}<br></span>
+                </div>
+
+                <div class="right-con public-bg">
+                    <div class="public-title">鱼群种类统计</div>
+                    <div id="pie-chart" style="width: 100%; height: 250px;"></div>
+                </div>
+
+                <div class="right-bottom public-bg">
+                    <div class="public-title">水底传感器信息</div>
+                    <span class="custom-color-2">设备编号：{{sensor_data.device_id}}<br></span>
+                    <span class="custom-color-2">下次检修：{{sensor_data.next_repair_time|date:"Y年m月d日"}}<br></span>
+                    <span class="custom-color-2">保修过期：{{sensor_data.warranty_time|date:"Y年m月d日"}}<br></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+<script src="https://www.jq22.com/jquery/echarts-4.2.1.min.js"></script>
+<script src="https://www.jq22.com/jquery/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="{% static 'js/china.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/index.js' %}"></script>
+
+<script>
+    //顶部时间
+    function getTime(){
+        var myDate = new Date();
+        var myYear = myDate.getFullYear(); //获取完整的年份(4位,1970-????)
+        var myMonth = myDate.getMonth()+1; //获取当前月份(0-11,0代表1月)
+        var myToday = myDate.getDate(); //获取当前日(1-31)
+        var myDay = myDate.getDay(); //获取当前星期X(0-6,0代表星期天)
+        var myHour = myDate.getHours(); //获取当前小时数(0-23)
+        var myMinute = myDate.getMinutes(); //获取当前分钟数(0-59)
+        var mySecond = myDate.getSeconds(); //获取当前秒数(0-59)
+        var week = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+        var nowTime;
+
+        nowTime = myYear+'年'+fillZero(myMonth)+'月'+fillZero(myToday)+'日'+'&nbsp;&nbsp;'+fillZero(myHour)+':'+fillZero(myMinute)+':'+fillZero(mySecond)+'&nbsp;&nbsp;'+week[myDay]+'&nbsp;&nbsp;';
+        //console.log(nowTime);
+        $('#time').html(nowTime);
+    };
+
+    function fillZero(str){
+        var realNum;
+        if(str<10){
+            realNum	= '0'+str;
+        }else{
+            realNum	= str;
+        }
+        return realNum;
+    }
+    //大屏
+    setInterval(getTime,1000);
+
+
+    //半环形图
+    var chartDom = document.getElementById('gauge-chart');
+    var myChart = echarts.init(chartDom);
+    var option;
+    option = {
+        series: [{
+            type: 'gauge', // 指定图表类型为仪表盘
+            startAngle: 180, // 仪表盘起始角度
+            endAngle: 0, // 仪表盘结束角度
+            min: 0, // 最小值
+            max: 100, // 最大值
+            splitNumber: 10, // 分隔段数
+            axisLine: {
+                lineStyle: {
+                    width: 6, // 轴线宽度
+                    color: [
+                        [0.3, '#67e0e3'], // 30%以下显示为浅蓝色
+                        [0.7, '#37a2da'], // 30%到70%之间显示为蓝色
+                        [1, '#fd666d'] // 70%以上显示为红色
+                    ]
+                }
+            },
+            pointer: {
+                icon: 'path://M18.2,0L25,26H11.4L18.2,0z', // 指针图标路径
+                length: '70%', // 指针长度
+                width: 3, // 指针宽度
+                offsetCenter: [0, '-60%'], // 指针中心偏移
+                itemStyle: {
+                    color: 'auto' // 指针颜色
+                }
+            },
+            axisTick: {
+                length: 12, // 刻度线长度
+                lineStyle: {
+                    color: 'auto', // 刻度线颜色
+                    width: 2 // 刻度线宽度
+                }
+            },
+            splitLine: {
+                length: 20, // 分隔线长度
+                lineStyle: {
+                    color: 'auto', // 分隔线颜色
+                    width: 5 // 分隔线宽度
+                }
+            },
+            axisLabel: {
+                color: '#464646', // 轴标签颜色
+                fontSize: 20, // 轴标签字体大小
+                distance: -60, // 轴标签距离
+                formatter: function (value) { // 轴标签格式化
+                    if (value === 0.7) {
+                        return '中';
+                    } else if (value === 0.3) {
+                        return '低';
+                    } else if (value === 1) {
+                        return '高';
+                    }
+                    return '';
+                }
+            },
+            title: {
+                offsetCenter: [0, '-20%'], // 标题偏移
+                fontSize: 20 // 标题字体大小
+            },
+            detail: {
+                fontSize: 30, // 详情字体大小
+                offsetCenter: [0, '-10%'], // 详情偏移
+                valueAnimation: true, // 详情值动画
+                formatter: '{value}' // 详情值格式化
+            },
+            data: [{
+                value: {{ latest_environment_score }}, // 环境评分数据
+            }]
+        }]
+    };
+    option && myChart.setOption(option);
+
+
+    //折线图
+    var fishData = {{ fish_data|safe }};
+    var times = fishData.map(function(item) { return item.time; }); // 提取时间数据
+    var numbers = fishData.map(function(item) { return item.number; }); // 提取鱼群数量数据
+    var chartDom = document.getElementById('line-chart');
+    var myChart = echarts.init(chartDom);
+
+    var option;
+    option = {
+        title: {
+            text: '数量-时间统计图', // 图表标题
+            left: 'center',         //居中
+            textStyle: {
+                color: '#67e0e3', // 标题颜色
+                fontSize: 18 // 标题字体大小
+        }
+        },
+        tooltip: {
+            trigger: 'axis' // 提示框触发类型，设置为轴触发
+        },
+        xAxis: {
+        type: 'category',
+        data: times,
+        axisLine: {
+            lineStyle: {
+                color: '#37a2da', // 轴线颜色
+                width: 2 // 轴线宽度
+            }
+        },
+        axisLabel: {
+            color: '#37a2da', // 轴标签颜色
+            fontSize: 12 // 轴标签字体大小
+        },
+        splitLine: {
+            lineStyle: {
+                color: '#ccc' // 网格线颜色
+            }
+        }
+        },
+        yAxis: {
+            type: 'value',
+            axisLine: {
+                lineStyle: {
+                    color: '#37a2da', // 轴线颜色
+                    width: 2 // 轴线宽度
+                }
+            },
+            axisLabel: {
+                color: '#37a2da', // 轴标签颜色
+                fontSize: 12 // 轴标签字体大小
+            },
+            splitLine: {
+                lineStyle: {
+                    color: '#ccc' // 网格线颜色
+                }
+            }
+        },
+
+        series: [{
+            data: numbers, // 数据数组，对应时间的鱼群数量
+            type: 'line' // 图表类型为折线图
+        }]
+    };
+    option && myChart.setOption(option);
+
+
+    //环形图
+    var fishData = {{ fish_data_type|safe }};
+    var seriesData = fishData.map(function(item) {
+        return {
+            name: item.type, // 鱼群种类
+            value: item.total_number // 鱼群数量
+        };
+    });
+    var chartDom = document.getElementById('pie-chart');
+    var myChart = echarts.init(chartDom);
+
+    // 配置图表的选项
+    var option;
+
+    option = {
+        title: {
+            text: '鱼群种类占比', // 图表标题
+            left: 'center', // 标题居中
+            textStyle: {
+                color: '#67e0e3', // 标题颜色
+                fontSize: 18 // 标题字体大小
+            }
+        },
+        tooltip: {
+            trigger: 'item' // 提示框触发类型，设置为数据项触发
+        },
+        legend: {
+            orient: 'vertical',
+            left: 'left',
+            textStyle: {
+                color: '#37a2da', // 图例字体颜色
+                fontSize: 14 // 图例字体大小
+            }
+        },
+        series: [
+            {
+                name: '数量', // 系列名称
+                type: 'pie', // 图表类型为饼图
+                radius: ['40%', '70%'], // 饼图半径
+                avoidLabelOverlap: false, // 避免标签重叠
+                label: {
+                    show: false, // 不显示标签
+                    position: 'center' // 标签位置在中心
+                },
+                emphasis: {
+                    label: {
+                        show: true, // 强调时显示标签
+                        fontSize: '30', // 标签字体大小
+                        fontWeight: 'bold' // 标签字体加粗
+                    }
+                },
+                labelLine: {
+                    show: false // 不显示标签线
+                },
+                data: seriesData // 饼图数据
+            }
+        ]
+    };
+    option && myChart.setOption(option);
+
+
+    //重量分布曲线
+    var xValues = {{ x_values|safe }};
+    var densityValues = {{ density_values|safe }};
+    var myChart = echarts.init(document.getElementById('main'));
+    var option = {
+        title: {
+            text: '鱼群重量分布曲线',
+            left: 'center',
+            textStyle: {
+                color: '#67e0e3',
+                fontSize: 18
+            }
+        },
+        tooltip: {
+            trigger: 'axis',
+            formatter: function (params) {
+                var weight = params[0].value[0];
+                var density = params[0].value[1];
+                return '重量: ' + weight + '<br/>密度: ' + density;
+            }
+        },
+        xAxis: {
+            type: 'value',
+            name: '重量',
+            min: 0,
+            axisLine: {
+                lineStyle: {
+                    color: '#37a2da',
+                    width: 2
+                }
+            },
+            axisLabel: {
+                color: '#37a2da',
+                fontSize: 12
+            },
+            splitLine: {
+                lineStyle: {
+                    color: '#37a2da'
+                }
+            }
+        },
+        yAxis: {
+            type: 'value',
+            name: '概率',
+            min: 0,
+            axisLine: {
+                lineStyle: {
+                    color: '#37a2da',
+                    width: 2
+                }
+            },
+            axisLabel: {
+                color: '#37a2da',
+                fontSize: 12
+            },
+            splitLine: {
+                lineStyle: {
+                    color: '#37a2da'
+                }
+            }
+        },
+        series: [{
+            name: '密度',
+            type: 'line',
+            data: xValues.map((x, index) => [x, densityValues[index]]),
+            smooth: true,
+            areaStyle: {
+                opacity: 0.2 // 区域填充透明度
+            },
+            itemStyle: {
+                color: '#5470c6' // 折线颜色
+            }
+        }]
+    };
+
+    myChart.setOption(option);
+
+
+    // 鱼群总数环形图
+    var totalFishGroups = {{ total_latest_fish }};
+    var myChart = echarts.init(document.getElementById('fishGroupChart'));
+    var option = {
+        title: {
+            text: '已保障养殖鱼群',
+            left: 'center',
+            textStyle: {
+                color: '#67e0e3',
+                fontSize: 18
+            }
+        },
+        tooltip: {
+            trigger: 'item',
+            formatter: '{a} <br/>{b}: {c} ({d}%)'
+        },
+        series: [
+            {
+                name: '鱼群总数',
+                type: 'pie',
+                radius: ['50%', '75%'], // 内圈半径为50%，外圈半径为75%
+                avoidLabelOverlap: false,
+                label: {
+                    show: false,
+                    position: 'center'
+                },
+                emphasis: {
+                    label: {
+                        show: true,
+                        fontSize: '20',
+                        fontWeight: 'bold'
+                    }
+                },
+                labelLine: {
+                    show: false
+                },
+                data: [
+                    {value: totalFishGroups, name: '已使用', itemStyle: {color: '#FFA07A'}}, // 红色
+                    {value: totalFishGroups * 0.25, name: '剩余', itemStyle: {color: '#66CDAA'}} // 绿色
+                ]
+            }
+        ]
+    };
+
+    myChart.setOption(option);
+
+
+</script>
