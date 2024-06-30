@@ -1,108 +1,293 @@
 {% load static %}
+<!DOCTYPE html>
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>海洋牧场监测可视化系统 - 智能中心</title>
+    <title>智能中心</title>
     <link rel="stylesheet" type="text/css" href="{% static 'css/stylei.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            background-color: #1a3e5c; /* 海洋风格的深蓝色背景 */
+            color: #ffffff; /* 白色文字 */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            text-align: left;
+            background-color: #1a3e5c;
+            padding: 10px 20px;
+            font-size: 24px;
+            color: #ffcc00; /* 黄色文字 */
+            border-bottom: 2px solid #ffffff;
+        }
+        .smart-center {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            gap: 20px;
+        }
+        .panel {
+            background-color: #2a3d54;
+            border: 2px solid #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+        .panel h3 {
+            color: #ffcc00;
+            border-bottom: 1px solid #ffffff;
+            padding-bottom: 10px;
+        }
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border: 1px solid #00ff00;
+            margin-bottom: 10px;
+            background-color: #08dbf3;
+            border-radius: 5px;
+        }
+        .data-row span {
+            font-size: 16px;
+            color: #ffffff;
+        }
+        .data-label {
+            color: #ffcc00;
+        }
+        .controls button {
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ffffff;
+            background-color: #1a3e5c;
+            color: #ffffff;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .controls button:hover {
+            background-color: #0056b3;
+        }
+        .media-size {
+            width: 100%;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .temperature-evaluation {
+            font-size: 20px;
+            text-align: center;
+            color: #ffffff;  /* 白色文字 */
+            margin-top: 20px;  /* 添加上方空间 */
+        }
+        #environment-score {
+            width: 100%; 
+            height: 350px;  /* 调整高度以填充更多空白空间 */
+        }
+    </style>
 </head>
 <body>
-        <button id="back">返回</button>
-                <style>
-                    #back {
-                        font-family: Arial, sans-serif;
-                        font-size: 24px;
-                        font-weight: bold;
-                        color: black;
-                    }
-                </style>
-        <script>
-            var back=document.getElementById('back')
-            back.onclick = () =>{
-                history.back();
-            }
-        </script>
-    <header class="page-header">
-        <h1>海洋牧场监测可视化系统</h1>
+<div class="header">
+    <span id="system-title">海洋牧场大数据可视化系统</span>
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var systemTitle = document.getElementById('system-title');
 
-    </header>
-    <div class="smart-center">
-        <div class="left-panel">
-            <h3>预警系统</h3>
-            <div class="alerts">
+        systemTitle.addEventListener('click', function() {
+            var url = '{% url "home" %}'; // 替换为实际的 URL
+            window.location.href = url;
+        });
 
-                <p>水温过高</p>
-                <p>网衣破损</p>
+        // 获取最新的环境评估数据
+        axios.get('/app01/get_latest_environment_score/')
+            .then(response => {
+                var environmentScore = Math.round(response.data.weighted_score);
+                var temperature = response.data.water_temperature;
+
+                // 显示最新环境评估
+                var chartDom = document.getElementById('environment-score');
+                var myChart = echarts.init(chartDom);
+                var option = {
+                    series: [{
+                        type: 'gauge',
+                        min: 0,
+                        max: 100,
+                        splitNumber: 10,
+                        axisLine: {
+                            lineStyle: {
+                                color: [
+                                    [0.2, '#ff4500'], 
+                                    [0.5, '#ffcc00'], 
+                                    [0.8, '#48b'], 
+                                    [1, '#228b22']
+                                ],
+                                width: 30
+                            }
+                        },
+                        pointer: {
+                            width: 5
+                        },
+                        axisLabel: {
+                            color: '#000000',  
+                        },
+                        detail: {
+                            formatter: '{value}',
+                            fontSize: 20,
+                            color: '#000000',  
+                        },
+                        data: [{value: environmentScore, name: ''}]
+                    }]
+                };
+                myChart.setOption(option);
+
+                // 智能评估
+                var temperatureEvaluation = document.getElementById('temperature-evaluation');
+                temperatureEvaluation.style.fontSize = '20px';  // 增大字体
+                temperatureEvaluation.style.textAlign = 'center';  // 居中对齐
+                if (temperature < 10) {
+                    temperatureEvaluation.innerText = '水温过低';
+                } else if (temperature <= 20) {
+                    temperatureEvaluation.innerText = '水温正常';
+                } else {
+                    temperatureEvaluation.innerText = '水温过高';
+                }
+
+                // 如果环境评估分数过低或水温过高，弹出警告
+                if (environmentScore < 60) {
+                    alert('警告：环境异常！');
+                }
+                if (temperature > 20) {
+                    alert('警告：水温过高！');
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching environment score:', error);
+            });
+
+        // 获取最新的鱼类数据
+        axios.get('/app01/get_latest_fish_data/')
+            .then(response => {
+                var fishData = response.data;
+                document.getElementById('fish-id').innerText = 'fish-' + fishData.id;
+                document.getElementById('fish-type').innerText = fishData.type;
+                document.getElementById('fish-length').innerText = fishData.length.toFixed(2) + '寸';
+                document.getElementById('fish-weight').innerText = fishData.weight.toFixed(2) + 'kg';
+            })
+            .catch(error => {
+                console.error('Error fetching fish data:', error);
+            });
+
+        // 获取气象数据并生成建议
+        axios.get('/app01/get_weather_data/')
+            .then(response => {
+                var weatherData = response.data;
+                document.getElementById('temperature').innerText = '温度: ' + weatherData.temp + '°C';
+                document.getElementById('wind').innerText = '风度: ' + weatherData.windDir + ' ' + weatherData.windScale + '级';
+                document.getElementById('humidity').innerText = '湿度: ' + weatherData.humidity + '%';
+                document.getElementById('aqi').innerText = '空气污染指数: ' + weatherData.aqi + ' ' + weatherData.category;
+
+                // 根据气象数据生成建议
+                var tips = document.getElementById('tips');
+                var suggestions = [];
+                if (weatherData.temp < 15) {
+                    suggestions.push('当前气温较低，请注意防寒保暖。');
+                } else if (weatherData.temp > 30) {
+                    suggestions.push('当前气温较高，请注意防暑降温。');
+                }
+                if (weatherData.windScale > 5) {
+                    suggestions.push('当前风力较强，请加强防风措施。');
+                }
+                if (weatherData.humidity < 30) {
+                    suggestions.push('空气湿度较低，请注意增加湿度。');
+                } else if (weatherData.humidity > 70) {
+                    suggestions.push('空气湿度较高，请注意防潮。');
+                }
+                if (weatherData.aqi > 100) {
+                    suggestions.push('空气质量较差，请减少户外活动。');
+                }
+
+                tips.innerHTML = suggestions.length ? suggestions.join('<br>') : '当前条件良好，无特别建议。';
+            })
+            .catch(error => {
+                console.error('Error fetching weather data:', error);
+            });
+    });
+
+    function showVideo(videoNumber) {
+        const videos = document.querySelectorAll('video');
+        videos.forEach(video => video.style.display = 'none');
+        document.getElementById(`video${videoNumber}`).style.display = 'block';
+    }
+</script>
+
+<div class="smart-center">
+    <div class="panel">
+        <h3>最新环境评估</h3>
+        <div id="environment-score"></div>
+        <h3>智能评估</h3>
+        <div id="temperature-evaluation" class="temperature-evaluation"></div>
+    </div>
+    <div class="panel">
+        <div class="image-recognition">
+            <h3>识别效果</h3>
+            <div class="video-display">
+                <video id="video1" controls class="media-size" style="display:block;">
+                    <source src="{% static 'video/video1.mp4'%}" type="video/mp4">
+                </video>
+                <video id="video2" controls class="media-size" style="display:none;">
+                    <source src="{% static 'video/video2.mp4'%}" type="video/mp4">
+                </video>
+                <video id="video3" controls class="media-size" style="display:none;">
+                    <source src="{% static 'video/video3.mp4'%}" type="video/mp4">
+                </video>
+                <video id="video4" controls class="media-size" style="display:none;">
+                    <source src="{% static 'video/video4.mp4'%}" type="video/mp4">
+                </video>
+            </div>
+            <div class="controls">
+                <button onclick="showVideo(1)">视频1</button>
+                <button onclick="showVideo(2)">视频2</button>
+                <button onclick="showVideo(3)">视频3</button>
+                <button onclick="showVideo(4)">视频4</button>
             </div>
         </div>
-        <div class="center-panel">
-            <div class="image-recognition">
-                <h3>识别效果</h3>
-                <div class="video-display">
-                    <video id="video1" controls class="media-size" style="display:block;">
-                        <source src="{% static 'video/video1.mp4'%}" type="video/mp4">
-                    </video>
-                    <video id="video2" controls class="media-size" style="display:none;">
-                        <source src="{% static 'video/video1.mp4'%}" type="video/mp4">
-                    </video>
-                    <video id="video3" controls class="media-size" style="display:none;">
-                        <source src="{% static 'video/video1.mp4'%}" type="video/mp4">
-                    </video>
-                    <video id="video4" controls class="media-size" style="display:none;">
-                        <source src="{% static 'video/video1.mp4'%}" type="video/mp4">
-                    </video>
-                </div>
-                <div class="controls">
-                    <button onclick="showVideo(1)">视频1</button>
-                    <button onclick="showVideo(2)">视频2</button>
-                    <button onclick="showVideo(3)">视频3</button>
-                    <button onclick="showVideo(4)">视频4</button>
-                </div>
+        <div class="real-time-data">
+            <h3>实时数据</h3>
+            <div class="data-row">
+                <span class="data-label">编号</span>
+                <span id="fish-id">-</span>
             </div>
-            <div class="real-time-data">
-                <h3>实时数据</h3>
-                <div class="data-row">
-                    <span>编号</span>
-                    <span>鱼种</span>
-                    <span>体长</span>
-                    <span>体重</span>
-                </div>
-                <div class="data-row">
-                    <span>疑似患病</span>
-                    <span>鱼群异常</span>
-                    <button>轨迹追踪</button>
-                    <button>轨迹分析</button>
-                </div>
+            <div class="data-row">
+                <span class="data-label">鱼种</span>
+                <span id="fish-type">-</span>
             </div>
-        </div>
-        <div class="right-panel">
-            <div class="ai-decision">
-                <h3>AI决策</h3>
-                <p>温度: 10~20</p>
-                <p>光照: 20~100</p>
-                <p>溶解氧: 0.2~0.5</p>
-                <p>PH: 8~8.7</p>
-                <p>盐度: 0.01~0.03</p>
+            <div class="data-row">
+                <span class="data-label">体长</span>
+                <span id="fish-length">-</span>
             </div>
-            <div class="tips">
-                <h3>提示</h3>
-                <p>未来几天可能降雨</p>
-                <p>请确保温度、风度正常</p>
-            </div>
-            <div class="weather-data">
-                <h3>气象数据</h3>
-                <p>温度: 0~7°C</p>
-                <p>风度: 5级 东北风</p>
-                <p>湿度: 96%</p>
-                <p>空气污染指数: 78 良 </p>
+            <div class="data-row">
+                <span class="data-label">体重</span>
+                <span id="fish-weight">-</span>
             </div>
         </div>
     </div>
-    <script>
-        function showVideo(videoNumber) {
-            const videos = document.querySelectorAll('video');
-            videos.forEach(video => video.style.display = 'none');
-            document.getElementById(`video${videoNumber}`).style.display = 'block';
-        }
-    </script>
+    <div class="panel">
+        <div class="tips">
+            <h3>提示</h3>
+            <p id="tips">-</p>
+        </div>
+        <div class="weather-data">
+            <h3>气象数据(海口市实时)</h3>
+            <p id="temperature">温度: -</p>
+            <p id="wind">风度: -</p>
+            <p id="humidity">湿度: -</p>
+            <p id="aqi">空气污染指数: -</p>
+        </div>
+    </div>
+</div>
 </body>
 </html>
+

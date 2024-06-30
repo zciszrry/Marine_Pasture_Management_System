@@ -1,7 +1,9 @@
 from django.contrib import admin
 from app01.models import Account,Staff
+from import_export.admin import ImportExportModelAdmin
+from .resource import StaffResource
 # Register your models here.
-class AccountManager(admin.ModelAdmin):
+class AccountManager(ImportExportModelAdmin):
     list_display = ['id','username','password']
 
     list_display_links = ['id']
@@ -13,7 +15,8 @@ class AccountManager(admin.ModelAdmin):
 
 admin.site.register(Account,AccountManager)
 
-class StaffManager(admin.ModelAdmin):
+class StaffManager(ImportExportModelAdmin):
+    resource_class = StaffResource
     list_display = ['id','name','position']
 
     list_display_links = ['name']
@@ -24,3 +27,4 @@ class StaffManager(admin.ModelAdmin):
     list_per_page = 20
 
 admin.site.register(Staff,StaffManager)
+

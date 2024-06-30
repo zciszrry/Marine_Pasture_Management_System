@@ -98,7 +98,6 @@ body{
     width: 40%;
     height: 100%;
 }
-
  .top-left-title{
     width: 100%;
     height: 100%;
@@ -112,6 +111,9 @@ body{
     margin-top: 20px;
     display: inline-block;
     color: #2aa4f1;
+
+/*    height: 80px;
+    line-height: 80px;*/
 }
  .top-left-title span b{
     font-size: 20px;
@@ -139,7 +141,6 @@ body{
     width: 100%;
     height: calc(100% - 70px);
 }
-
 .left-body .left-bottom{
     width: 100%;
     height: 32%;
@@ -151,60 +152,8 @@ body{
     height: 100%;
     margin:0 0.3%;
     float: left;
+    /*border: 1px solid red;*/
 }
-
-.center-body .center-top{
-    width: 100%;
-    height: 45%;
-}
-
-.center-body .center-top .center-table{
-    width: 100%;
-    height: calc(100% - 30px);
-    display: flex;
-    justify-content: space-around;
-}
-
-.center-body .center-top .center-table .table-left{
-    float: left;
-    width: 35%;
-    height: 100%;
-}
-.center-body .center-top .center-table .table-center{
-    float: left;
-    width: 35%;
-    height: 100%;
-}
-.center-body .center-top .center-table .table-right{
-    float: left;
-    width: 30%;
-    height: 100%;
-}
- .table-left-title{
-    width: 100%;
-    height: 100%;
-    padding: 70px;
-    box-sizing: border-box;
-}
- .table-left-title h6{
-    color: #bad0e2;
-}
-.table-left-title span{
-    margin-top: 20px;
-    display: inline-block;
-    color: #2aa4f1;
-}
- .table-left-title span b{
-    font-size: 20px;
-     letter-spacing:2px;
-}
-
-.center-body .center-bottom{
-    width: 100%;
-    height: 51%;
-    margin-top: 2%;
-}
-
 .center-body .map{
     width: 100%;
     height: 100%;
@@ -220,18 +169,6 @@ body{
     width: 100%;
     height: 32%;
 }
-
-.right-body .right-con{
-    width: 100%;
-    height: 39%;
-    margin-top: 2%;
-}
-.right-body .right-bottom{
-    width: 100%;
-    height: 25%;
-    margin-top: 2%;
-}
-
 .title-nav .top5-ul{
     width: calc(100% - 60px);
     height: calc(100% - 100px);
@@ -310,6 +247,16 @@ body{
     display: inline-block;
     text-align: center;
 }  */
+.right-body .right-con{
+    width: 100%;
+    height: 39%;
+    margin-top: 2%;
+}
+.right-body .right-bottom{
+    width: 100%;
+    height: 25%;
+    margin-top: 2%;
+}
 
 .custom-color-1 {
     color: #2997e4;

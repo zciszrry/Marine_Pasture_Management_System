@@ -1,0 +1,236 @@
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>水质监测</title>
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+<style>
+    .pagination {
+        display: flex;
+        justify-content: center;
+        margin-top: 20px;
+    }
+    .step-links {
+        list-style: none;
+        padding: 0;
+    }
+    .step-links li {
+        display: inline;
+        margin-right: 5px;
+    }
+    .step-links a {
+        padding: 8px 15px;
+        background-color: #fff; /* 设置按钮背景为白色 */
+        color: #000; /* 设置按钮文字为黑色 */
+        border: 1px solid #ddd; /* 按钮边框颜色 */
+        text-decoration: none;
+    }
+    .step-links a:hover {
+        background-color: #eee; /* 鼠标悬停时的背景颜色 */
+        border-color: #ddd;
+    }
+    .step-links .current {
+        font-weight: bold;
+        color: #fff;
+    }
+</style>
+</head>
+
+
+<body>
+<!--<button id="back">返回</button>-->
+<!--                <style>-->
+<!--                    #back {-->
+<!--                        font-family: Arial, sans-serif;-->
+<!--                        font-size: 12px;-->
+<!--                        font-weight: bold;-->
+<!--                        color: black;-->
+<!--                    }-->
+<!--                </style>-->
+<!--        <script>-->
+<!--            var back=document.getElementById('back')-->
+<!--            back.onclick = () =>{-->
+<!--                history.back();-->
+<!--            }-->
+<!--        </script>-->
+<div class="content-body">
+    <div class="header">
+        <div class="header-left">
+            <span id="system-title">海洋牧场大数据可视化系统</span>
+        </div>
+        <script>
+    // 等待 DOM 加载完成
+    document.addEventListener('DOMContentLoaded', function() {
+        // 获取元素
+        var systemTitle = document.getElementById('system-title');
+
+        // 添加点击事件监听器
+        systemTitle.addEventListener('click', function() {
+            // 设置要跳转的 URL
+            var url = 'http://127.0.0.1:8000/app01/home'; // 替换为实际的 URL
+            window.location.href = url;
+        });
+    });
+</script>
+
+        <div class="header-time">
+            <span id="time"></span>
+        </div>
+    </div>
+
+    <div class="content">
+        <div class="content-con">
+            <div class="left-body">
+                <div class="left-top public-bg">
+                    <div class="public-title">数据中心</div>
+                    <div class="top-body">
+                        <div class="top-left">
+                            <div class="top-left-title">
+                                <h6>数据总量</h6>
+                                <span><b>{{ data_sum }}</b></span>
+                                <span>单位：KB</span>
+                            </div>
+
+                        </div>
+                        <div class="top-center">
+                            <div class="top-left-title">
+                                <h6>今日新增</h6>
+                                <span><b>8</b></span>
+                            </div>
+                        </div>
+                        <div class="top-right">
+                            <div class="top-left-title">
+                                <h6>今日处理</h6>
+                                <span><b>8</b></span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+                <div class="left-con public-bg">
+                    <div class="public-title">数据类型统计</div>
+                    <div class="title-nav" id="wuran"></div>
+
+                </div>
+
+
+                <div class="left-bottom public-bg">
+                    <div class="public-title">数据类型占比</div>
+                    <div class="title-nav" id="leida"></div>
+                </div>
+                
+            </div>
+
+            <div class="center-body">
+                <div class="public-title">数据中心分布</div>
+                <div class="map" id="map"></div>
+            </div>
+
+            <div class="right-body">
+                <div class="right-top public-bg">
+                    <div class="public-title">设备信息</div>
+                    <div class="title-nav">
+                        <div class="top5-ul">
+                            <ul>
+                                <li>
+                                    <span class="custom-color-1">设备</span>
+                                    <span class="custom-color-1">编号</span>
+                                    <span class="custom-color-1">类型</span>
+                                    <span class="custom-color-1">大小</span>
+                                </li>
+                                {% for device in page_obj %}
+                                <li>
+                                    <span>{{ device.name }}</span>
+                                    <span>{{ device.category }}-{{ device.category_index_id }}</span>
+                                    <span>{{ device.type }}</span>
+                                    <span>{{ device.memory}} KB</span>
+                                </li>
+                                {% endfor %}
+
+                            </ul>
+                        </div>
+                    </div>
+                    <!-- 添加分页导航 -->
+        <div class="pagination">
+            <span class="step-links">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ page_obj.previous_page_number }}">prev</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}">next</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+
+                </div>
+                <div class="right-con public-bg">
+                    <div class="public-title">硬件信息</div>
+                    <div class="title-nav" id="huaxing"></div>
+                </div>
+
+                <div class="right-bottom public-bg">
+                    <div class="public-title">数据库交互统计</div>
+                        <span class="custom-color-3">服务信息<br></span>
+                        <span class="custom-color-2">数据库：MySQL，HBase<br></span>
+                        <span class="custom-color-2">查询次数：567890<br></span>
+                        <span class="custom-color-2">成功次数：567890<br></span>
+                        <span class="custom-color-2">查询时间：0.1s<br></span>
+                        
+<!--                </div>-->
+<!--                <div id="main" style="width: 600px;height:400px;"></div>-->
+<!--                <script>-->
+<!--        // 确保所有DOM元素都已加载完成-->
+<!--        window.onload = function() {-->
+<!--            fetchData(); // 调用 fetchData 函数-->
+<!--        };-->
+<!--    </script>-->
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+
+<script src="https://www.jq22.com/jquery/echarts-4.2.1.min.js"></script>
+<script src="https://www.jq22.com/jquery/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="{% static 'js/china.js' %}"></script>
+<script type="text/javascript" src="{% static 'js/index.js' %}"></script>
+
+<script>
+    //顶部时间
+    function getTime(){
+        var myDate = new Date();
+        var myYear = myDate.getFullYear(); //获取完整的年份(4位,1970-????)
+        var myMonth = myDate.getMonth()+1; //获取当前月份(0-11,0代表1月)
+        var myToday = myDate.getDate(); //获取当前日(1-31)
+        var myDay = myDate.getDay(); //获取当前星期X(0-6,0代表星期天)
+        var myHour = myDate.getHours(); //获取当前小时数(0-23)
+        var myMinute = myDate.getMinutes(); //获取当前分钟数(0-59)
+        var mySecond = myDate.getSeconds(); //获取当前秒数(0-59)
+        var week = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+        var nowTime;
+
+        nowTime = myYear+'年'+fillZero(myMonth)+'月'+fillZero(myToday)+'日'+'&nbsp;&nbsp;'+fillZero(myHour)+':'+fillZero(myMinute)+':'+fillZero(mySecond)+'&nbsp;&nbsp;'+week[myDay]+'&nbsp;&nbsp;';
+        //console.log(nowTime);
+        $('#time').html(nowTime);
+    };
+    function fillZero(str){
+        var realNum;
+        if(str<10){
+            realNum	= '0'+str;
+        }else{
+            realNum	= str;
+        }
+        return realNum;
+    }
+    //大屏
+    setInterval(getTime,1000);
+</script>

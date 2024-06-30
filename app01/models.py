@@ -10,7 +10,10 @@ class Staff(models.Model):
     GENDER_CHOICES = (
         ('M', 'Male'),
         ('F', 'Female'),
-        # 假设gender字段只有M和F两种选项，可以根据实际情况扩展
+    )
+    STATE_CHOICES=(
+        ('N','正常'),# normal
+        ('A','异常'),# abnormal
     )
     id = models.AutoField(primary_key=True)  # 自增主键
     name = models.CharField(max_length=45, null=True)
@@ -18,7 +21,7 @@ class Staff(models.Model):
     gender = models.CharField(max_length=5, choices=GENDER_CHOICES, null=True)
     age = models.IntegerField(null=True)
     phone_number = models.IntegerField(null=True)
-    state = models.CharField(max_length=45, null=True)
+    state = models.CharField(max_length=45,choices=STATE_CHOICES, null=True)
 
 class Account(models.Model):
     username=models.CharField(max_length=32)
@@ -74,16 +77,9 @@ class Sensor(models.Model):
 
 
 class HydrologicInfo(models.Model):
-    WATER_QUALITY_CHOICES = [
-        ('Ⅰ', 'Ⅰ类'),
-        ('Ⅱ', 'Ⅱ类'),
-        ('Ⅲ', 'Ⅲ类'),
-        ('Ⅳ', 'Ⅳ类'),
-        ('Ⅴ', 'Ⅴ类'),
-    ]
 
-    monitoring_time = models.DateField()  # 监测时间
-    water_quality_category = models.CharField(max_length=20, choices=WATER_QUALITY_CHOICES,null=True,blank=True)  # 水质类别
+    monitoring_time = models.DateField(null=True,blank=True)  # 监测时间
+    water_quality_category = models.CharField(max_length=20,null=True,blank=True)  # 水质类别
     water_temperature = models.FloatField(null=True,blank=True)  # 水温（℃）
     pH = models.FloatField(null=True,blank=True)  # pH(无量纲)
     dissolved_oxygen = models.FloatField(null=True,blank=True)  # 溶氧量(mg/L)

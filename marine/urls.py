@@ -25,6 +25,7 @@ urlpatterns = [
     # www.xxx.com/index/ -> 函数
     # 用户登录
     path('app01/',include('app01.urls')),
+    path('', views.login),
 
 ]
 

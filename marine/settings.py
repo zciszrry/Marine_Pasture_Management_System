@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'app01.apps.App01Config'
+    'app01.apps.App01Config',
+    'import_export',
 ]
 
 MIDDLEWARE = [
@@ -86,9 +87,9 @@ WSGI_APPLICATION = 'marine.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'sf',
+        'NAME': 'sf2',
         'USER': 'root',
-        'PASSWORD':'2002zc1016',
+        'PASSWORD':'',
         'HOST':'127.0.0.1', # 哪台机器安装了mysql
         'PORT':3306,
     }

@@ -1,101 +1,387 @@
 {% load static %}
+<!DOCTYPE html>
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>主要信息 - 海洋牧场监测可视化系统</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'css/stylem.css'%}">
+    <title>主要信息</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/stylem.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://api.tianditu.gov.cn/api?v=4.0&tk=d2ca47175c73138b87143b6dd0f190b5"></script>
+    <style>
+        body {
+            background-color: #1a3e5c; /* 海洋风格的深蓝色背景 */
+            color: #ffffff; /* 白色文字 */
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            grid-area: header;
+            text-align: left;
+            background-color: #1a3e5c; /* 深蓝色背景 */
+            padding: 10px 20px;
+            font-size: 24px;
+        }
+        .container {
+    display: grid;
+    grid-template-areas: 
+        "header header header"
+        "left center right";
+    grid-template-rows: auto 1fr;
+    grid-template-columns: 1fr 1.4fr 1fr;
+    gap: 10px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+.center-panel {
+    grid-area: center;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.center-panel .section {
+    flex: 1; /* 使两个子模块各占一半高度 */
+}
+
+        .panel {
+            border: 2px solid #ffffff; /* 白色边框 */
+            padding: 10px;
+            background-color: #2a3d54; /* 深蓝色背景 */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .panel h2 {
+            color: #ffffff; /* 白色标题 */
+            margin: 0;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+        .left-panel {
+            grid-area: left;
+        }
+
+        .right-panel {
+            grid-area: right;
+            display: grid;
+            grid-template-rows: 1fr 1fr;
+            gap: 10px;
+        }
+        .controls button, .controls select {
+            padding: 10px;
+            margin-right: 10px;
+            border: 1px solid #ffffff;
+            background-color: #1a3e5c;
+            color: #ffffff;
+            cursor: pointer;
+        }
+        .controls button:hover, .controls select:hover {
+            background-color: #0056b3;
+        }
+        .media-size {
+            width: 100%;
+            height: auto;
+        }
+        #mapContainer, #chartContainer {
+            width: 100%;
+            height: 100%;
+            border: 2px solid #ffffff; /* 白色边框 */
+        }
+        .data-field {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .data-field .label {
+            width: 50%;
+            font-size: 16px;
+            color: #ffffff;
+        }
+        .data-field .value {
+            width: 70%;
+            background-color: #A9D0F5;
+            height: 25px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        .data-field .value span {
+            display: block;
+            height: 100%;
+            border-radius: 12px;
+            text-align: right;
+            padding-right: 10px;
+            box-sizing: border-box;
+            color: #ffffff;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-<button id="back">返回</button>
-                <style>
-                    #back {
-                        font-family: Arial, sans-serif;
-                        font-size: 24px;
-                        font-weight: bold;
-                        color: black;
-                    }
-                </style>
-        <script>
-            var back=document.getElementById('back')
-            back.onclick = () =>{
-                history.back();
-            }
-        </script>
-    <header class="page-header">
-        <h1>海洋牧场监测可视化系统</h1>
-    </header>
-    <div class="container">
-        <div class="panel left-panel">
-            <div class="section video-controls">
-                <h2>监控视频</h2>
-                <div class="controls">
-                    <button onclick="showVideo(1)">视频1</button>
-                    <button onclick="showVideo(2)">视频2</button>
-                    <button onclick="showVideo(3)">视频3</button>
-                    <button onclick="showVideo(4)">视频4</button>
-                </div>
-                <div class="video-display">
-                    <video id="video1" controls class="media-size" style="display:block;">
-                        <source src="{% static 'video/video1.mp4'%}" type="video/mp4">
-                    </video>
-                    <video id="video2" controls class="media-size" style="display:none;">
-                        <source src="{% static 'video/video2.mp4'%}" type="video/mp4">
-                    </video>
-                    <video id="video3" controls class="media-size" style="display:none;">
-                        <source src="{% static 'video/video3.mp4'%}" type="video/mp4">
-                    </video>
-                    <video id="video4" controls class="media-size" style="display:none;">
-                        <source src="{% static 'video/video4.mp4'%}" type="video/mp4">
-                    </video>
-                </div>
-                <div class="additional-controls">
-                    <button>摄像机开关</button>
-                    <button>灯光开关</button>
-                    <button>清洁刷开关</button>
-                    <button>视频回放</button>
-                    <button>视频同时播放</button>
-                    <button>云台摄像机</button>
-                </div>
+    <div class="header">
+        <span id="system-title">海洋牧场大数据可视化系统</span>
+    </div>
+    
+<div class="container">
+    <div class="panel left-panel">
+        <div class="section video-controls">
+            <h2>监控视频</h2>
+            <div class="controls">
+                <button onclick="showVideo(1)">视频1</button>
+                <button onclick="showVideo(2)">视频2</button>
+                <button onclick="showVideo(3)">视频3</button>
+                <button onclick="showVideo(4)">视频4</button>
             </div>
-        </div>
-        <div class="panel center-panel">
-            <div class="section sensor-data">
-                <h2>水文气象</h2>
-                <div class="data">
-                    <p>电池电压: 25.9V</p>
-                    <p>盐度: 34.16%</p>
-                    <p>溶解氧: 8 mg/L</p>
-                    <p>浊度: 2.05 NTU</p>
-                    <p>pH: 8.37</p>
-                    <p>水温: 15°C</p>
-                </div>
-            </div>
-            <div class="section location">
-                <h2>定位</h2>
-                <img src="{% static 'img/location-map.png'%}" alt="Map Location" class="media-size">
-            </div>
-        </div>
-        <div class="panel right-panel">
-            <div class="section history">
-                <h2>历史记录</h2>
-                <p>统计时间: 2023-01-31 至 2024-01-31</p>
-                <img src="{% static 'img/historical-data.png'%}" alt="Historical Data" class="media-size">
-            </div>
-            <div class="section status">
-                <h2>设备状态</h2>
-                <p>系统ID: 8D19C331-4F08-47A1</p>
-                <p>版本: V0.1.1</p>
-                <p>系统温度: 39.64°C</p>
-                <p>设备状态: 正常</p>
+            <div class="video-display">
+                <video id="video1" controls class="media-size" style="display:block;">
+                    <source src="{% static 'video/video1.mp4' %}" type="video/mp4">
+                </video>
+                <video id="video2" controls class="media-size" style="display:none;">
+                    <source src="{% static 'video/video2.mp4' %}" type="video/mp4">
+                </video>
+                <video id="video3" controls class="media-size" style="display:none;">
+                    <source src="{% static 'video/video3.mp4' %}" type="video/mp4">
+                </video>
+                <video id="video4" controls class="media-size" style="display:none;">
+                    <source src="{% static 'video/video4.mp4' %}" type="video/mp4">
+                </video>
             </div>
         </div>
     </div>
-    <script>
-        function showVideo(videoNumber) {
-            const videos = document.querySelectorAll('video');
-            videos.forEach(video => video.style.display = 'none');
-            document.getElementById(`video${videoNumber}`).style.display = 'block';
+    <div class="panel center-panel">
+        <div class="section sensor-data">
+            <h2>最新水文气象</h2>
+            <div id="hydroDataContainer" style="width: 100%;"></div>
+            <script>
+                function loadHydroData() {
+                    axios.get('/app01/get_latest_hydro_data/')
+                        .then(response => {
+                            var data = response.data.data;
+                            console.log('Hydro data:', data);  // 调试信息
+                            var container = document.getElementById('hydroDataContainer');
+                            container.innerHTML = ''; // 清空容器
+
+                            var fields = [
+                                { name: '溶解氧 (mg/L)', value: data.dissolved_oxygen, unit: '', maxValue: 20, color: '#FF6347' },
+                                { name: '浊度 (NTU)', value: data.turbidity, unit: '', maxValue: 20, color: '#4682B4' },
+                                { name: 'pH', value: data.ph, unit: '', maxValue: 14, color: '#32CD32' },
+                                { name: '水温 (°C)', value: data.water_temperature, unit: '', maxValue: 40, color: '#FFD700' }
+                            ];
+
+                            fields.forEach(field => {
+                                var fieldContainer = document.createElement('div');
+                                fieldContainer.className = 'data-field';
+
+                                var label = document.createElement('div');
+                                label.className = 'label';
+                                label.innerText = field.name;
+
+                                var valueContainer = document.createElement('div');
+                                valueContainer.className = 'value';
+
+                                var valueBar = document.createElement('span');
+                                var widthPercentage = (field.value / field.maxValue) * 100;
+                                valueBar.style.width = widthPercentage + '%'; // 根据实际需要调整宽度比例
+                                valueBar.style.backgroundColor = field.color;
+                                valueBar.innerText = field.value + field.unit;
+
+                                valueContainer.appendChild(valueBar);
+                                fieldContainer.appendChild(label);
+                                fieldContainer.appendChild(valueContainer);
+                                container.appendChild(fieldContainer);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error fetching hydro data:', error);
+                        });
+                }
+
+                window.onload = function() {
+                    loadHydroData();
+                    loadAvailableDates();
+                    initMap();
+                    enableBackNavigation();
+                }
+                
+                function enableBackNavigation() {
+                    document.addEventListener('click', function(event) {
+                        if (event.clientX < window.innerWidth * 0.1) { // 点击位置在页面左侧 10% 的范围内
+                            history.back();
+                        }
+                    });
+                }
+            </script>
+        </div>
+        <div class="section location">
+            <h2>定位</h2>
+            <div id="mapContainer" class="media-size"></div>
+        </div>
+    </div>
+    <div class="panel right-panel">
+        <div class="section history">
+            <h2>历史记录</h2>
+            <div class="controls" style="display: flex; align-items: center;">
+                <label for="datePicker" style="margin-right: 10px;">选择日期：</label>
+                <select id="datePicker" style="margin-right: 10px;"></select>
+                <label for="dataTypeSelector" style="margin-right: 10px;">选择数据类型：</label>
+                <select id="dataTypeSelector" style="margin-right: 10px;">
+                    <option value="water_temperature">水温</option>
+                    <option value="ph">pH值</option>
+                    <option value="dissolved_oxygen">溶解氧</option>
+                    <option value="turbidity">浊度</option>
+                </select>
+            </div>
+            <div id="chartContainer"></div>
+        </div>
+        <div class="section status">
+            <h2>设备状态</h2>
+            <p>系统ID: 8D19C331-4F08-47A1</p>
+            <p>版本: V0.1.1</p>
+            <p>系统温度: 39.64°C</p>
+            <p>设备状态: 正常</p>
+        </div>
+    </div>
+</div>
+<script>
+    function showVideo(videoNumber) {
+        const videos = document.querySelectorAll('video');
+        videos.forEach(video => video.style.display = 'none');
+        document.getElementById(`video${videoNumber}`).style.display = 'block';
+    }
+
+    var chart = echarts.init(document.getElementById('chartContainer'));
+
+    function fetchHistoricalData(date, dataType) {
+        if (!date) {
+            console.error('Date is missing');
+            return;
         }
-    </script>
+
+        axios.get(`/app01/get_historical_data?date=${date}&dataType=${dataType}`)
+            .then(response => {
+                var data = response.data;
+                console.log('Historical data:', data);  // 调试信息
+                if (data.error) {
+                    console.error('Error fetching data:', data.error);
+                    return;
+                }
+
+                var option = {
+
+                    tooltip: {
+                        trigger: 'axis'
+                    },
+                    grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    top: '10%', 
+                    containLabel: true
+                },
+                    xAxis: {
+                        type: 'category',
+                        data: data.intervals.map(interval => interval.toFixed(2)), // 转换区间为字符串，保留两位小数
+                        axisLabel: {
+                            color: '#ffffff'
+                        },
+                    },
+                    yAxis: {
+                        type: 'value',
+                        name: '',
+                        min: 0,
+                        axisLabel: {
+                            color: '#ffffff'
+                        }
+                    },
+                    series: [
+                        {
+                            name: '数量',
+                            type: 'bar',
+                            data: data.counts,
+                            itemStyle: {
+                                color: '#FFA500'  // 使用橙色作为柱状图颜色
+                            }
+                        }
+                    ]
+                };
+                chart.setOption(option);
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
+    }
+
+    function loadAvailableDates() {
+        axios.get('/app01/get_available_dates/')
+            .then(response => {
+                var dates = response.data.dates;
+                console.log('Available dates:', dates);  // 调试信息
+                var datePicker = document.getElementById('datePicker');
+                datePicker.innerHTML = '';  // 清空现有选项
+
+                if (dates.length === 0) {
+                    console.error('No available dates found');
+                    return;
+                }
+
+                dates.forEach(date => {
+                    var option = document.createElement('option');
+                    option.value = date;
+                    option.text = date;
+                    datePicker.appendChild(option);
+                });
+
+                // 加载第一个日期的数据
+                fetchHistoricalData(dates[0], document.getElementById('dataTypeSelector').value);
+            })
+            .catch(error => {
+                console.error('Error fetching dates:', error);
+            });
+    }
+
+    document.getElementById('datePicker').addEventListener('change', function() {
+        var date = this.value;
+        var dataType = document.getElementById('dataTypeSelector').value;
+        fetchHistoricalData(date, dataType);
+    });
+
+    document.getElementById('dataTypeSelector').addEventListener('change', function() {
+        var dataType = this.value;
+        var date = document.getElementById('datePicker').value;
+        fetchHistoricalData(date, dataType);
+    });
+
+    // 初始加载
+    window.onload = function() {
+        loadHydroData();
+        loadAvailableDates();
+        initMap();
+    }
+
+    // 初始化天地图
+    function initMap() {
+        var map = new T.Map('mapContainer');
+        map.centerAndZoom(new T.LngLat(109.7485, 18.5098), 10); // 海南省乐东龙栖湾海域的坐标
+        var satelliteLayer = new T.TileLayer.Satellite(); // 添加卫星图层
+        map.addLayer(satelliteLayer);
+        map.addControl(new T.NavigationControl());
+        map.addControl(new T.ScaleControl());
+    }
+// 等待 DOM 加载完成
+document.addEventListener('DOMContentLoaded', function() {
+        // 获取元素
+        var systemTitle = document.getElementById('system-title');
+
+        // 添加点击事件监听器
+        systemTitle.addEventListener('click', function() {
+            // 设置要跳转的 URL
+            var url = 'http://127.0.0.1:8000/app01/home'; 
+            window.location.href = url;
+        });
+    });
+</script>
 </body>
 </html>
+
